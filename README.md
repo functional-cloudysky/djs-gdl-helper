@@ -1,2 +1,1 @@
-# djs-gdl-helper
-Discord 봇(Bot) - gdl-helper
+   경험치 
