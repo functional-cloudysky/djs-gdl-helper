@@ -2280,7 +2280,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
 	activateInput();
 });
 
-const token = "Njk0MzkzNDI5MDQ3OTAyMjIw.Xvw3Gg.4dTViLxRi4HOtFF4mKxeP0Zn7ew";
+const token = "12345678";
 client.login(token);
 // client12.login(token);
 // client8.loginWithToken(token);
