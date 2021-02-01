@@ -6,15 +6,15 @@ const
 	제야서버 = '서버 ID',
 	
 	쥐디엘언더바헬퍼 = '694393429047902220',
-	블루 = '사용자 ID',
-	치킨 = '사용자 ID',
-	_1ㅇ1ㅇ = '사용자 ID',
-	내계정 = '사용자 ID',
-	스포츠 = '사용자 ID',
-	병아리 = '사용자 ID',
-	푸른아기미르형제 = '사용자 ID',
-	둘째로큰도시 = '사용자 ID',
-	복고 = '사용자 ID',
+	블루 = '계정 ID',
+	치킨 = '계정 ID',
+	_1ㅇ1ㅇ = '계정 ID',
+	내계정 = '계정 ID',
+	스포츠 = '계정 ID',
+	병아리울음 = '계정 ID',
+	푸른아기미르형제 = '계정 ID',
+	둘째로큰도시 = '계정 ID',
+	복고 = '계정 ID',
 	
 	__TRASH_VARIABLE = -1;
 
@@ -86,22 +86,22 @@ function swear(content) {
 	var retcnt = content;
 	var idx = 0;
 
-	for(var swd of sw) {
-		if(swd.startsWith("!")) {
-			if(content.toUpperCase().replace(/\s/gi, '').includes(swd.replace("!", ''))) {
+	for(swd of sw) {
+		if(swd.startsWith('!')) {
+			if(content.toUpperCase().replace(/\s/gi, '').includes(swd.replace('!', ''))) {
 				retval = 1;
 
-				var regex = new RegExp(swd.replace("!", ''), "gi");
+				var regex = RegExp(swd.replace('!', ''), 'gi');
 
-				retcnt = retcnt.replace(regex, "(욕설치환)");
+				retcnt = retcnt.replace(regex, '(욕설치환)');
 			}
 		} else {
 			if(content.toUpperCase().includes(swd)) {
 				retval = 1;
 
-				var regex = new RegExp(swd, "gi");
+				var regex = RegExp(swd, 'gi');
 
-				retcnt = retcnt.replace(regex, "(욕설치환)");
+				retcnt = retcnt.replace(regex, '(욕설치환)');
 			}
 		}
 
@@ -146,7 +146,7 @@ var jsnSwearWarnings = {};
 
 var jsnMsgCounts = {};
 
-print("helper 시작 중. . .\n");
+print('helper 시작 중. . .\n');
 
 const readline = require('readline');
 
@@ -156,7 +156,8 @@ const CONST11 = require('djs11/src/util/Constants.js');
 CONST11.DefaultOptions.ws.properties.$browser = `Discord Android`;
 
 const client = new DJS11.Client({
-	prefix: '!'
+	prefix: '!',
+	partials: ['REACTION', 'MESSAGE'],
 });
 
 function getUserStatus(id) {
@@ -194,7 +195,7 @@ function getUserFromMention(mention) {
 	if(!matches) return;
 	const id = matches[1];
 
-	return client.users.find(user => user.id == id);
+	return client.users.get(id);
 }
 
 
@@ -212,7 +213,9 @@ var jsnDidMemberJoined = {};
 
 var connected = 0;
 
-client.on('ready', () => {
+client.on('ready', function() {
+	// 'use strict';
+	
 	print('[v11] 로그인 완료!');//\n\n' +
 	//		'┌──────────────────────────┐ \n' +
 	//		'│T-자유대화       A-팀대화실         R-개발대화      │ \n' +
@@ -220,11 +223,10 @@ client.on('ready', () => {
 	//		'│X-시험실         G-녹화실           O-토론실        │ \n' +
 	//		'└──────────────────────────┘ ');
 	//client.user.setGame("!help", "https://www.twitch.tv/-");
-	con1 = 1;
 	connected = 1;
 
 	client.user.setPresence({
-		status: "invisible"/*,
+		status: 'invisible'/*,
 		activity: {
 			name: '<TM 관리 중단됨>',  //The message shown
 			type: "PLAYING" //PLAYING: WATCHING: LISTENING: STREAMING:
@@ -234,6 +236,15 @@ client.on('ready', () => {
 			type: "PLAYING" //PLAYING: WATCHING: LISTENING: STREAMING:
 		}*/
 	});
+	
+	/*
+	// partial이나 넣어야징
+	let timeout = 1000;
+	client.channels.filter(ch => ch.type == 'text').forEach(ch => {
+		setTimeout(() => ch.fetchMessages({ limit: 100 }).then(msg => print(ch.name + '의 메시지를 가져왔습니다...')), timeout);
+		timeout += 1000;
+	});
+	*/
 
 	// client.channels.get("669855794220630030").send(EmbedMsgbox("!", "helper v200522.5 RC 버전 [디버그] 실행 중입니다. 곧 이 버전이 정식 적용될 예정입니다. [[오작동 신고]](https://discord.gg/e5W9G6e)"));
 });
@@ -305,7 +316,8 @@ client.command('MUTE', (params, msg) => {
 		.addField('발생 채널', msg.channel.name, 1)
 		.addField('사유', reason, 1)
 		.addField('기간(분)', duration || '무기한')
-		.setTimestamp();
+		.setTimestamp()
+	;
 		
 	msg.reply2('[자동발신] 차단했습니다.');
 	
@@ -318,9 +330,9 @@ client.command('MUTE', (params, msg) => {
 (function() {
 	const msgEmbedToRich = require("discordjs-embed-converter").msgEmbedToRich;
 	
-	const voted = [];
-	const polls = [];
-	const expired = [];
+	const voted = require('./votes.json');
+	const polls = require('./polls.json');
+	const expired = require('./expired.json');
 	
 	// https://stackoverflow.com/questions/57339653/
 	// https://discordjs.guide/popular-topics/miscellaneous-examples.html#emoji-characters
@@ -343,15 +355,13 @@ client.command('MUTE', (params, msg) => {
 	
 	// 투표 기능
 	client.command('poll', (params, msg) => {
-		var max
-		
 		var _options = params.value('option');
 		var options = (_options instanceof Array ? _options : [ _options ]);
 		if(options.length <= 1) return msg.reply2('[자동발신] 옵션은 2개 이상이어야 합니다.');
 		if(options.length > maxopt) return msg.reply2('[자동발신] 옵션이 너무 많습니다.');
 		var end = Number(params.value('duration')) || 0;
-		var title = params.value('title') || '투표';
-		var desc = params.value('description') || params.value('desc') || params.value('content') || '';
+		var title = params.value('title') || params.value('t') || '투표';
+		var desc = params.value('description') || params.value('desc') || params.value('d') || params.value('content') || params.value('c') || '';
 		
 		var poll = new DJS11.RichEmbed()
 			.setColor('#00c8c8')
@@ -372,7 +382,9 @@ client.command('MUTE', (params, msg) => {
 		msg.channel.send(poll).then(embed => {
 			polls.push(embed.id);
 			voted.push({ id: embed.id, voters: [], voteval: {} });
-			if(end) setTimeout(() => expired.push(embed.id), end * 1000);
+			fs.writeFileSync('./votes.json', JSON.stringify(voted));
+			fs.writeFileSync('./polls.json', JSON.stringify(polls));
+			if(end) setTimeout(() => { expired.push(embed.id); fs.writeFileSync('./expired.json', JSON.stringify(expired)) }, end * 1000);
 			
 			(function reactOptions(i) {
 				if(i >= options.length) return;
@@ -381,64 +393,75 @@ client.command('MUTE', (params, msg) => {
 		});
 	});
 	
-	client.on('messageReactionAdd', (reaction, user) => {
-		if(user.id == client.user.id) return;
-		if(!(polls.includes(reaction.message.id))) return;
-		if(expired.includes(reaction.message.id)) return reaction.message.channel.send('[자동발신] <@' + user.id + '> 투표 기간이 아닙니다.');
-		
-		var msg = reaction.message;
-		var vote = voted.find(item => item && item.id == msg.id);
-		
-		if(!vote) {
-			return msg.channel.send('[자동발신] <@' + user.id + '> 투표 처리 중 내부 오류가 발생했습니다');
-		} if(vote.voters.includes(user.id)) {
-			return msg.channel.send('[자동발신] <@' + user.id + '> 이미 투표해서 투표할 수 없습니다');
-		} var voters = vote.voters;
-		
-		voters.push(user.id);
-		
-		var embed = msg.embeds[0];
-		
-		var fields = embed.fields;
-		var currenti = fields.findIndex(item => item.name.startsWith(reaction.emoji.name));
-		var current = fields[currenti];
-		var currentvoters = vote.voteval[reaction.emoji.name];
-		if(!currentvoters) currentvoters = vote.voteval[reaction.emoji.name] = [];
-		currentvoters.push(user.id);
-		
-		var votercnt = fields.find(item => item.name == '투표자 수').value;
-		var ci = fields.findIndex(item => item.name == '투표자 수');
-		var cc = fields[ci];
-		cc.value = (Number(votercnt) || 0) + 1;
-		fields[ci] = cc;
-		
-		/*
-		var percent = currentvoters.length / voters.length;
-		percent *= 100;
-		current.value = progress(percent) + ' (' + percent + '%)';
-		fields[currenti] = current;
-		*/
-		
-		var idx = 0;
-		for(currenti in fields) {
+	client.on('messageReactionAdd', (_r, _u) => {
+		function handlePoll(reaction, user) {
+			if(user.id == client.user.id) return;
+			if(!(polls.includes(reaction.message.id))) return;
+			if(expired.includes(reaction.message.id)) return reaction.message.channel.send('[자동발신] <@' + user.id + '> 투표 기간이 아닙니다.');
+			
+			var msg = reaction.message;
+			var vote = voted.find(item => item && item.id == msg.id);
+			reaction.remove(user);
+			
+			if(!vote) {
+				return msg.channel.send('[자동발신] <@' + user.id + '> 투표 처리 중 내부 오류가 발생했습니다').then(msg => msg.delete(5000));
+			} if(vote.voters.includes(user.id)) {
+				return msg.channel.send('[자동발신] <@' + user.id + '> 이미 투표해서 투표할 수 없습니다').then(msg => msg.delete(5000));
+			} var voters = vote.voters;
+			
+			voters.push(user.id);
+			
+			var embed = msg.embeds[0];
+			
+			var fields = embed.fields;
+			var currenti = fields.findIndex(item => item.name.startsWith(reaction.emoji.name));
 			var current = fields[currenti];
-			if(['투표 기간', '투표자 수'].includes(current.name)) continue;
-			var currentvoters = vote.voteval[current.name.split(' ')[0]];
-			if(!currentvoters) currentvoters = vote.voteval[current.name.split(' ')[0]] = [];
+			var currentvoters = vote.voteval[reaction.emoji.name];
+			if(!currentvoters) currentvoters = vote.voteval[reaction.emoji.name] = [];
+			currentvoters.push(user.id);
+			
+			var votercnt = fields.find(item => item.name == '투표자 수').value;
+			var ci = fields.findIndex(item => item.name == '투표자 수');
+			var cc = fields[ci];
+			cc.value = (Number(votercnt) || 0) + 1;
+			fields[ci] = cc;
+			
+			/*
 			var percent = currentvoters.length / voters.length;
 			percent *= 100;
-			current.value = progress(percent) + ' (' + Math.round(percent) + '%)';
+			current.value = progress(percent) + ' (' + percent + '%)';
 			fields[currenti] = current;
+			*/
+			
+			var idx = 0;
+			for(currenti in fields) {
+				var current = fields[currenti];
+				if(['투표 기간', '투표자 수'].includes(current.name)) continue;
+				var currentvoters = vote.voteval[current.name.split(' ')[0]];
+				if(!currentvoters) currentvoters = vote.voteval[current.name.split(' ')[0]] = [];
+				var percent = currentvoters.length / voters.length;
+				percent *= 100;
+				current.value = progress(percent) + ' (' + Math.round(percent) + '%)';
+				fields[currenti] = current;
+			}
+			
+			embed.fields = fields;
+			
+			msg.edit(msgEmbedToRich(embed));
+			
+			fs.writeFileSync('./votes.json', JSON.stringify(voted));
+			fs.writeFileSync('./polls.json', JSON.stringify(polls));
 		}
 		
-		embed.fields = fields;
-		
-		msg.edit(msgEmbedToRich(embed));
+		if(_r.message.partial) _r.message.fetch().then(m => {
+			_r.message = m;
+			handlePoll(_r, _u);
+		}); else handlePoll(_r, _u);
 	});
 })();
 
 client.on('message', msg => {
-	if(msg.webhookID) return;
+	if(msg.webhookID || msg.partial) return;
 	
 	var args = msg.content.split(/ +/);
 	var command = args[0].lower.replace(prefix, '');
@@ -804,7 +827,7 @@ client.on('message', msg => {
 
 				print(ivlnk);
 
-				client.fetchInvite(ivlnk).then((invite) => {
+				client.fetchInvite(ivlnk).then(invite => {
 					print("\n[[" + invite['inviter']['username'] + "가 만든 초대장을 통해 서버에 초대받았어요]]");
 					print("[[이름: " + invite.guild['name'] + "]]");
 					print("[[사용자 수: " + invite['memberCount'] + "]]");
@@ -928,7 +951,7 @@ client.on('guildMemberRemove', member => {
 
 const emoji = require('node-emoji');
 
-const token = fs.readFileSync('./token_helper.txt').toString();
+const token = fs.readFileSync('./token_helper.txt') + '';
 client.login(token);
 // client8.loginWithToken(token);
 
@@ -1077,13 +1100,15 @@ client.on('guildMemberAdd', member => {
 	
 	var gateway = client.channels.get(대기실);
 	
+	// 봇이 제야 서버에 없당
+	// 하드코딩... 멤버 추가되면 직접 업데이트해야 함
 	var wpdi = [
-		{ guild: 제야서버, user: _1ㅇ10 },
+		{ guild: 제야서버, user: _1ㅇ1ㅇ },
 		{ guild: 제야서버, user: 내계정 },
 		{ guild: 제야서버, user: 블루 },
 		{ guild: 제야서버, user: 치킨 },
 		{ guild: 제야서버, user: 스포츠 },
-		{ guild: 제야서버, user: 병아리 },
+		{ guild: 제야서버, user: 병아리울음 },
 		{ guild: 제야서버, user: 푸른아기미르형제 },
 		{ guild: 제야서버, user: 복고 },
 		{ guild: 제야서버, user: 둘째로큰도시 },
